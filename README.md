@@ -1,4 +1,4 @@
-# Audio-Visual Evaluation
+# Audio-Visual Synchrony Evaluation
 
 Paper: [PEAVS: Perceptual Evaluation of Audio-Visual Synchrony Grounded in Viewers' Opinion Scores](https://arxiv.org/abs/2404.07336) 
 
