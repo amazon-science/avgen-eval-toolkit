@@ -1,4 +1,20 @@
-# Audio-Visual Evaluation Toolkits
+# Audio-Visual Evaluation
+
+Paper: [PEAVS: Perceptual Evaluation of Audio-Visual Synchrony Grounded in Viewers' Opinion Scores](https://arxiv.org/abs/2404.07336) 
+
+
+If you use this work, please cite:
+
+```
+@misc{goncalves2024peavs,
+      title={PEAVS: Perceptual Evaluation of Audio-Visual Synchrony Grounded in Viewers' Opinion Scores}, 
+      author={Lucas Goncalves and Prashant Mathur and Chandrashekhar Lavania and Metehan Cekic and Marcello Federico and Kyu J. Han},
+      year={2024},
+      eprint={2404.07336},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV}
+}
+```
 
 ## Environment 
 Create the environment from the environment.yml file:
