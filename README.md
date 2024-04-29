@@ -158,3 +158,28 @@ bash run_FAVD.sh --ref=<video_paths_ref> --eval=<video_paths_eval>
 
 Simply replace the placeholder `<video_paths_ref>` with the path to the reference audio-visual content you will be using
 and replace the placeholder `<video_paths_eval>` with the path to the audio-viusal content you want to evaluate with FAVD.
+
+## AVS Benchmark Dataset
+
+The AVS Benchmark Dataset is designed for the development and evaluation of metrics that assess audio-visual (AV) synchronization in multimedia content. This benchmark focuses on human perception of AV sync errors under various distortion scenarios.
+
+### Data Composition
+
+The dataset comprises 200 videos from the AudioSet corpus, carefully selected to exclude any content with faces and to represent a range of synchrony-sensitive activities. Each video is subjected to nine different types of synchrony-related distortions at ten levels of intensity, resulting in 18,200 unique distorted videos.
+
+### Distortion Types
+
+Distortions applied aim to mimic real-world sync anomalies caused by factors such as network issues or encoding errors. These include:
+- Temporal Misalignment
+- Audio Speed Change
+- Video Speed Change
+- Fragment Shuffling
+- Intermittent Muting
+- Randomly Sized Gaps
+- AV Flickering
+
+Each type of distortion is crafted to either create de-synchronization (temporal noise) or present challenges in perceptual sync (static noise) without actual desynchronization.
+
+### Annotation Process
+
+The dataset avoids evaluating the quality of audio or video in isolation, focusing solely on AV sync issues. A pairwise comparison approach is employed, where annotators rate videos side-by-side based on synchronization quality. Over 60,000 pairwise ratings were collected, ensuring each video was rated at least three times for robustness.
