@@ -102,7 +102,7 @@ torchaudio==0.13.1
 torchlibrosa==0.1.0
 torchmetrics==1.0.0
 torchvision==0.14.1
-tqdm==4.65.0
+tqdm==4.66.3
 traitlets==5.9.0
 transformers==4.30.2
 typing_extensions
