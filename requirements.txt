@@ -96,7 +96,7 @@ threadpoolctl==3.2.0
 tifffile==2023.7.10
 tokenizers==0.13.3
 tomli==2.0.1
-torch==1.13.1
+torch==2.2.0
 torch-fidelity==0.3.0
 torchaudio==0.13.1
 torchlibrosa==0.1.0
