@@ -51,7 +51,7 @@ networkx==3.1
 numba==0.57.1
 numpy==1.23.5
 omegaconf==2.0.6
-opencv-python==4.8.0.74
+opencv-python==4.8.1.78
 packaging==23.1
 pandas==2.0.3
 parso==0.8.3
