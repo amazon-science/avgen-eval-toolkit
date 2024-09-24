@@ -46,17 +46,13 @@ class TransformerEncoder(nn.Module):
         if self.normalize:
             self.layer_norm = LayerNorm(embed_dim)
 
-    def forward(self, x_in, x_in_k = None, x_in_v = None):
+    def forward(self, x_in, x_in_k = None, x_in_v = None, encoder_padding_mask = None):
         """
         Args:
             x_in (FloatTensor): embedded input of shape `(src_len, batch, embed_dim)`
             x_in_k (FloatTensor): embedded input of shape `(src_len, batch, embed_dim)`
             x_in_v (FloatTensor): embedded input of shape `(src_len, batch, embed_dim)`
-        Returns:
-            dict:
-                - **encoder_out** (Tensor): the last encoder layer's output of
-                  shape `(src_len, batch, embed_dim)`
-                - **encoder_padding_mask** (ByteTensor): the positions of
+            - **encoder_padding_mask** (ByteTensor): the positions of
                   padding elements of shape `(batch, src_len)`
         """
         # embed tokens and positions
@@ -74,14 +70,14 @@ class TransformerEncoder(nn.Module):
                 x_v += self.embed_positions(x_in_v.transpose(0, 1)[:, :, 0]).transpose(0, 1)   # Add positional embedding
             x_k = F.dropout(x_k, p=self.dropout, training=self.training)
             x_v = F.dropout(x_v, p=self.dropout, training=self.training)
-        
+        # print(encoder_padding_mask, 'encoder_padding_mask')
         # encoder layers
         intermediates = [x]
         for layer in self.layers:
             if x_in_k is not None and x_in_v is not None:
-                x = layer(x, x_k, x_v)
+                x = layer(x, x_k, x_v, mask = encoder_padding_mask)
             else:
-                x = layer(x)
+                x = layer(x, mask = encoder_padding_mask)
             intermediates.append(x)
 
         if self.normalize:
@@ -130,7 +126,7 @@ class TransformerEncoderLayer(nn.Module):
         self.fc2 = Linear(4*self.embed_dim, self.embed_dim)
         self.layer_norms = nn.ModuleList([LayerNorm(self.embed_dim) for _ in range(2)])
 
-    def forward(self, x, x_k=None, x_v=None):
+    def forward(self, x, x_k=None, x_v=None, mask = None):
         """
         Args:
             x (Tensor): input to the layer of shape `(seq_len, batch, embed_dim)`
@@ -143,7 +139,6 @@ class TransformerEncoderLayer(nn.Module):
         """
         residual = x
         x = self.maybe_layer_norm(0, x, before=True)
-        mask = buffered_future_mask(x, x_k) if self.attn_mask else None
         if x_k is None and x_v is None:
             x, _ = self.self_attn(query=x, key=x, value=x, attn_mask=mask)
         else:
@@ -174,16 +169,6 @@ class TransformerEncoderLayer(nn.Module):
 def fill_with_neg_inf(t):
     """FP16-compatible function that fills a tensor with -inf."""
     return t.float().fill_(float('-inf')).type_as(t)
-
-
-def buffered_future_mask(tensor, tensor2=None):
-    dim1 = dim2 = tensor.size(0)
-    if tensor2 is not None:
-        dim2 = tensor2.size(0)
-    future_mask = torch.triu(fill_with_neg_inf(torch.ones(dim1, dim2)), 1+abs(dim2-dim1))
-    if tensor.is_cuda:
-        future_mask = future_mask.cuda()
-    return future_mask[:dim1, :dim2]
 
 
 def Linear(in_features, out_features, bias=True):

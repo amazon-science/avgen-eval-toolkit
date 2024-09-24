@@ -66,12 +66,11 @@ class SyncMetric(nn.Module):
                                   attn_mask=self.attn_mask)
     
     
-    def forward(self, x_aud, x_vid):
+    def forward(self, x_aud, x_vid, mask_a, mask_v):
         """
         audio, and vision should have dimension [batch_size, seq_len, n_features]
 
         """    
-
         x_aud = x_aud.transpose(1, 2)
         x_vid = x_vid.transpose(1, 2)
        
@@ -81,19 +80,24 @@ class SyncMetric(nn.Module):
         proj_x_v = proj_x_v.permute(2, 0, 1)
   
         # Audio/Visual
-        h_av = self.trans_a_with_v(proj_x_a, proj_x_v, proj_x_v)
-
-        h_as = self.trans_a_mem(h_av)
-        representation_audio = h_as.mean(dim=0)
+        h_av = self.trans_a_with_v(proj_x_a, proj_x_v, proj_x_v, encoder_padding_mask=mask_v)
+        h_as = self.trans_a_mem(h_av, encoder_padding_mask = mask_v)
+        mask_v_expanded = mask_v.unsqueeze(-1).expand(-1, -1, h_as.size(-1))  # Expand to [batch_size, seq_len, embed_dim]
+        h_as_masked = h_as.permute(1, 0, 2) * mask_v_expanded  # Align mask and apply to h_as
+        valid_token_counts = mask_v.sum(dim=1, keepdim=True).float()  # Get the number of valid tokens for each batch
+        representation_visual = h_as_masked.sum(dim=1) / valid_token_counts
 
         # Visual/Audio
-        h_va = self.trans_v_with_a(proj_x_v, proj_x_a, proj_x_a)
-        h_vs = self.trans_v_mem(h_va)
-        representation_visual = h_vs.mean(dim=0)
+        h_va = self.trans_v_with_a(proj_x_v, proj_x_a, proj_x_a,encoder_padding_mask = mask_a)
+        h_vs = self.trans_v_mem(h_va, encoder_padding_mask = mask_a)
+        seq_len_vs = h_vs.size(0)  # Get the sequence length of h_vs
+        mask_a_expanded = mask_a[:, :seq_len_vs].unsqueeze(-1).expand(-1, -1, h_vs.size(-1))  # [batch_size, seq_len, embed_dim]
+        h_vs_masked = h_vs.permute(1, 0, 2) * mask_a_expanded  # [batch_size, seq_len, embed_dim]
+        valid_token_counts = mask_a.sum(dim=1, keepdim=True).float()  # [batch_size, 1]
+        representation_audio = h_vs_masked.sum(dim=1) / valid_token_counts  # [batch_size, embed_dim]
     
         # Concatenating audiovisual representations
-        av_h_rep = torch.cat([representation_audio, representation_visual], dim=1)
-        
+        av_h_rep = torch.cat([representation_visual, representation_audio], dim=1)
         
         # Pass the representation through three fully connected layers
         av_h_rep = F.relu(self.proj1(av_h_rep))

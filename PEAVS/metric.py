@@ -3,16 +3,14 @@
 import os
 import sys
 import argparse
+
 # 3rd-Party Modules
 import numpy as np
 from tqdm import tqdm
 import pandas as pd
-import shutil
 
 # PyTorch Modules
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from torch.utils.data import DataLoader
 
 
@@ -25,7 +23,7 @@ def main(args):
     utils.set_deterministic(args.seed)
     
     # Initialize dataset
-    DataManager=utils.DataManager()
+    DataManager = utils.DataManager()
 
     audio_path = './av_features_extraction/output_feats/vggish'
     video_path = './av_features_extraction/output_feats/i3d_feats'
@@ -52,21 +50,24 @@ def main(args):
     
     modelWrapper = net.ModelWrapper(args) # Change this to use custom model
     modelWrapper.init_model()
-    modelWrapper.load_model(model_path, 'test')
+    modelWrapper.load_model(model_path)
     modelWrapper.set_eval()
  
 
     with torch.no_grad():
         total_pred = [] 
-        total_y = []
         for xy_pair in tqdm(test_loader):
             xa = xy_pair[0]
             xv = xy_pair[1]
+            mask_a = xy_pair[2]
+            mask_v = xy_pair[3]
         
             xa=xa.cuda(non_blocking=True).float()
             xv=xv.cuda(non_blocking=True).float()
+            mask_a=mask_a.cuda(non_blocking=True).float()
+            mask_v=mask_v.cuda(non_blocking=True).float()
 
-            pred = modelWrapper.feed_forward(xa, xv)
+            pred = modelWrapper.feed_forward(xa, xv, aud_mask=mask_a, vid_mask=mask_v)
 
             total_pred.append(torch.clamp(pred*4+1, min=1, max=5))
 
@@ -148,12 +149,6 @@ if __name__ == "__main__":
     parser.add_argument(
         '--attn_mask', action='store_false',
         help='use attention mask for transformer (default: true)')
-    parser.add_argument(
-        '--optim', type = str, default = 'Adam',
-        help='optimizer to use (default: Adam)')
-    parser.add_argument(
-        '--decay', type = int, default = 6,
-        help='When to decay learning rate (default: 5)')
 
     args = parser.parse_args()
 
