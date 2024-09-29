@@ -2,15 +2,12 @@ import os
 import sys
 from . import av_sync_Model
 import torch
-from torch import nn
-import torch.optim as optim
 sys.path.append(os.getcwd())
 
 class ModelWrapper():
     def __init__(self, args, **kwargs):
         self.args = args
         self.device = args.device
-        self.model_path = './ckcpt_crossmodal'
         return
 
     def init_model(self):
@@ -27,8 +24,10 @@ class ModelWrapper():
         Feed forward the model
         """
         def __inference__(self, xa, xv, **kwargs):
-            mask = kwargs.get("attention_mask", None)
-            pred = self.av_sync(xa,xv)
+            mask_a = kwargs.get("aud_mask", None)
+            mask_v = kwargs.get("vid_mask", None)
+            
+            pred = self.av_sync(xa, xv ,mask_a, mask_v)
             return pred
         
         with torch.no_grad():
@@ -41,6 +40,6 @@ class ModelWrapper():
         """
         self.av_sync.eval()
 
-    def load_model(self, model_path, run_type):
+    def load_model(self, model_path):
         self.av_sync.load_state_dict(torch.load(model_path+"/final_model.pt"))
 
