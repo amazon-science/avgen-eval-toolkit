@@ -18,7 +18,7 @@ fastrlock==0.8.1
 ffmpeg-progress-yield==0.7.8
 ffmpeg-python==0.2.0
 ffmpeg-quality-metrics==3.3.0
-filelock==3.12.2
+filelock==3.20.3
 fonttools==4.42.0
 fsspec==2023.6.0
 ftfy==6.1.1
